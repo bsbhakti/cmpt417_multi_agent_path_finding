@@ -124,7 +124,9 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
 
     #check edge constraint
     if(next_time in constraint_table['edge']):
-        if ( [(curr_loc, next_loc)] in constraint_table['edge'][next_time] ):
+        # print("checki÷ng edge", (curr_loc, next_loc),next_time )
+        if ( [curr_loc, next_loc] in constraint_table['edge'][next_time] ):
+            # print("returning True", (curr_loc, next_loc),next_time )
             return True
  
     return False

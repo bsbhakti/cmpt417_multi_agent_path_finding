@@ -58,8 +58,8 @@ class PrioritizedPlanningSolver(object):
             for index,position in enumerate(path[1:]):
                 all_constraints.append({'loc':[position], 'timestep': index+1 })
                 # print("adding cons ",[position, path[index]], index+1)
-                # all_constraints.append({'loc':[position, path[index]], 'timestep': index+1 })
-            print("this is all", all_constraints)
+                all_constraints.append({'loc':[position, path[index]], 'timestep': index+1 })
+            # print("th is is all", all_constraints)
 
                 
 
