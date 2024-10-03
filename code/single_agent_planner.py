@@ -1,3 +1,4 @@
+from calendar import c
 import heapq
 from operator import truediv
 
@@ -63,26 +64,20 @@ def build_constraint_table(constraints, agent):
     #               is_constrained function.
    
     # dict indexed by timestep. each index has an array of locations the agent cannt be at at that timestep
-    constraint_table = {'edge': {}, 'vertex': {}}
+    constraint_table = {'edge': {}, 'vertex': {}, 'end': {}}
     for constraint in constraints:
-        if(len(constraint['loc']) == 1):
-            constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'][0],'vertex')
-           
+        print(constraint)
+        if(constraint['end'] == True):
+            constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'][0],'end')
+
+            # constraint_table['end'][constraint['timestep'] ]
         else:
-            # first_timestep = constraint['timestep'] - len(constraint['loc']) + 1
-            # # print("making constraint table")
-            # for l in constraint["loc"]: # if there are multiple locations then its an edge constraint, add individual constraint for each time step
-            #     # print("this is l,",l)
-            #     constraint_table = put_in_table(constraint_table,first_timestep,l)
-            #     first_timestep+=1
-            constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'],'edge')
+            if(len(constraint['loc']) == 1):
+                constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'][0],'vertex')
+            
+            else:
+                constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'],'edge')
 
-
-                # if(first_timestep not in constraint_table):
-                #     constraint_table[first_timestep] = [l]
-                #     first_timestep +=1
-                # else:
-                #     constraint_table[first_timestep].append(l)
 
     # d = {}
     # d[constraints["loc"]] = agent
@@ -128,6 +123,11 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
         if ( [curr_loc, next_loc] in constraint_table['edge'][next_time] ):
             # print("returning True", (curr_loc, next_loc),next_time )
             return True
+
+    for time in constraint_table['end'].keys():
+        if(time <= next_time and constraint_table['end'][time] == [next_loc]):
+            return True
+
  
     return False
 
@@ -174,7 +174,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         curr = pop_node(open_list)
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
-
+        ## maybe change this
         if curr['loc'] == goal_loc:
             goal_found = True
             for i in constraint_table['vertex'].keys():
