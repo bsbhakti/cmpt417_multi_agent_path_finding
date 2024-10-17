@@ -34,14 +34,17 @@ class PrioritizedPlanningSolver(object):
         # {'agent': 1, 'loc': [(1,2)], 'timestep': 2}] # for Task 1.5
 
         all_constraints = []
+        upperbound = len(self.my_map) * len(self.my_map[0])
 
         for i in range(self.num_of_agents):  # Find path for each agent
-            if(i == 0):
-                path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                          i, all_constraints)
-            else: 
-                path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                          i, all_constraints)
+            # if(i == 0):
+            #     path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+            #               i, all_constraints, upperbound)
+            # else: 
+            #     path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+            #               i, all_constraints, upperbound)
+            path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+                        i, all_constraints, upperbound)
             if path is None:
                 raise BaseException('No solutions')
             result.append(path)
@@ -62,12 +65,9 @@ class PrioritizedPlanningSolver(object):
                 # print("adding cons ",[position, path[index]], index+1)
                 all_constraints.append({'loc':[position, path[index]], 'timestep': index+1, 'end':False })
             all_constraints.append({'loc':[path[-1]], 'timestep': len(path), 'end':True })
+            upperbound += len(path)
 
             # print("th is is all", all_constraints)
-
-                
-
-
 
         self.CPU_time = timer.time() - start_time
 

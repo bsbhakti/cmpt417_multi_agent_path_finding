@@ -66,7 +66,7 @@ def build_constraint_table(constraints, agent):
     # dict indexed by timestep. each index has an array of locations the agent cannt be at at that timestep
     constraint_table = {'edge': {}, 'vertex': {}, 'end': {}}
     for constraint in constraints:
-        print(constraint)
+        # print("this is constraint",constraint)
         if(constraint['end'] == True):
             constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'][0],'end')
 
@@ -82,8 +82,8 @@ def build_constraint_table(constraints, agent):
     # d = {}
     # d[constraints["loc"]] = agent
     # constraint_table[constraints["timestep"]]= d
-    print("TABLE")
-    print(constraint_table)
+    # print("TABLE")
+    # print(constraint_table)
     return constraint_table
 
 
@@ -146,8 +146,11 @@ def compare_nodes(n1, n2):
     """Return true is n1 is better than n2."""
     return n1['g_val'] + n1['h_val'] < n2['g_val'] + n2['h_val']
 
+def valid_state(x, y, map):
+    return ((0 <= x <= len(map)) and (0 <= y <= len(map[0])))
 
-def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
+
+def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound):
     """ my_map      - binary obstacle map
         start_loc   - start position
         goal_loc    - goal position
@@ -163,8 +166,11 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     closed_list = dict()
     earliest_goal_timestep = 0
     h_value = h_values[start_loc]
+    # print("a star is getting this ", constraints)
+    # return
 
-    constraint_table = build_constraint_table(constraints, agent) 
+    constraint_table = build_constraint_table(constraints, agent)
+    # print("this is constraint table", constraint_table) 
 
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'time': 0}
     push_node(open_list, root)
@@ -172,39 +178,44 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     goal_found = False
     while len(open_list) > 0:
         curr = pop_node(open_list)
+        if(curr["time"] <= upperbound):
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
         ## maybe change this
-        if curr['loc'] == goal_loc:
-            goal_found = True
-            for i in constraint_table['vertex'].keys():
-                if i > curr['time']:
-                    if curr['loc'] in constraint_table['vertex'][i]:
-                        goal_found = False
-                        continue
-            if(goal_found):
-                return get_path(curr)
-       
-        for dir in range(5):
-            child_loc = move(curr['loc'], dir)
-            if my_map[child_loc[0]][child_loc[1]]:
-                continue
-            child = {'loc': child_loc,
-                    'g_val': curr['g_val'] + 1,
-                    'h_val': h_values[child_loc],
-                    'parent': curr,
-                    'time': curr['time'] + 1 }
-            # mayve we can prune when we pop it, rn pruning is done at node generation? 
-            if(is_constrained(curr['loc'], child['loc'], child['time'],constraint_table )):
-                print("It is constrained for loc", child['loc'], )
-                continue
-            if ((child['loc'], child['time'])) in closed_list:
-                existing_node = closed_list[(child['loc'], child['time'])]
-                if compare_nodes(child, existing_node):
+            if curr['loc'] == goal_loc:
+                goal_found = True
+                for i in constraint_table['vertex'].keys():
+                    if i > curr['time']:
+                        if curr['loc'] in constraint_table['vertex'][i]:
+                            goal_found = False
+                            continue
+                if(goal_found):
+                    return get_path(curr)
+        
+            for dir in range(5):
+                child_loc = move(curr['loc'], dir)
+                # if my_map[child_loc[0]][child_loc[1]]:
+                #     continue
+                if not valid_state(child_loc[0],child_loc[1],my_map):
+                    continue
+
+                print(curr)
+                child = {'loc': child_loc,
+                        'g_val': curr['g_val'] + 1,
+                        'h_val': h_values[child_loc],
+                        'parent': curr,
+                        'time': curr['time'] + 1 }
+                # mayve we can prune when we pop it, rn pruning is done at node generation? 
+                if(is_constrained(curr['loc'], child['loc'], child['time'],constraint_table )):
+                    # print("It is constrained for loc", child['loc'], "at time", child['time'])
+                    continue
+                if ((child['loc'], child['time'])) in closed_list:
+                    existing_node = closed_list[(child['loc'], child['time'])]
+                    if compare_nodes(child, existing_node):
+                        closed_list[(child['loc'], child['time'])] = child
+                        push_node(open_list, child)
+                else:
                     closed_list[(child['loc'], child['time'])] = child
                     push_node(open_list, child)
-            else:
-                closed_list[(child['loc'], child['time'])] = child
-                push_node(open_list, child)
 
     return None  # Failed to find solutions

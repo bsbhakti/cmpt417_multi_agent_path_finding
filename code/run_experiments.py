@@ -102,7 +102,12 @@ if __name__ == '__main__':
         elif args.solver == "Prioritized":
             print("***Run Prioritized***")
             solver = PrioritizedPlanningSolver(my_map, starts, goals)
-            paths = solver.find_solution()
+            try:
+                paths = solver.find_solution()
+            except:
+                print("No solution was found")
+                break
+                
         else:
             raise RuntimeError("Unknown solver!")
 
@@ -111,6 +116,7 @@ if __name__ == '__main__':
 
 
         if not args.batch:
+            print("Path found")
             print("***Test paths on a simulation***")
             animation = Animation(my_map, starts, goals, paths)
             # animation.save("output.mp4", 1.0)
