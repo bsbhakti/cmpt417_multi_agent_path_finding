@@ -13,15 +13,34 @@ def detect_collision(path1, path2, i,j):
     #           A vertex collision occurs if both robots occupy the same location at the same timestep
     #           An edge collision occurs if the robots swap their location at the same timestep.
     #           You should use "get_location(path, t)" to get the location of a robot at time t.
-    for time, pos in enumerate(path1):
+    if len(path1) > len(path2):
+       longer_list = path1
+       shorter_list = path2
+       agent1 = i
+       agent2 = j
+    else:
+        longer_list = path2
+        shorter_list = path1
+        agent1 = j
+        agent2 = i
+
+    for time, pos in enumerate(longer_list):
         #vertex collision
-        if(get_location(path2,time) == pos):
+        if(get_location(shorter_list,time) == pos):
             # print(get_location(path2,time), pos)
-            return {'a1': i, 'a2': j, 'loc': [pos], 'timestep':time, 'vertex': True}
+            return {'a1': agent1, 'a2': agent2, 'loc': [pos], 'timestep':time, 'vertex': True}
         #edge collision
-        if(get_location(path2,time+1) == pos and get_location(path2,time) == get_location(path1,time+1)):
+        if(get_location(shorter_list,time+1) == pos and get_location(shorter_list,time) == get_location(longer_list,time+1)):
             # print("found edge collision", pos,get_location(path2,time+1), get_location(path1,time-1), time, i )
-            return {'a1': i, 'a2': j, 'loc': [pos,get_location(path1,time+1)], 'timestep':time+1, 'vertex': False}
+            return {'a1': agent1, 'a2': agent2, 'loc': [pos,get_location(longer_list,time+1)], 'timestep':time+1, 'vertex': False}
+        # #goal collison - one vertex is at the goal and other tries to pass it over
+        # if(time == (len(path1)-1)): #last one
+        #     if(len(path2) > len(path1)):
+        #         for extra_time in range(time+1, len(path2)):
+        #             if(get_location(path2,extra_time) == pos):
+        #                 return {'a1': i, 'a2': j, 'loc': [pos], 'timestep':time, 'vertex': True, 'end': True}
+
+
 
 def detect_collisions(paths):
     ##############################
@@ -34,7 +53,9 @@ def detect_collisions(paths):
     for i, p1 in enumerate(paths):
         for j, p2 in enumerate(paths[i+1:]):
             # print()
-            res.append(detect_collision(p1,p2,i,i+j+1))
+            collision = detect_collision(p1,p2,i,i+j+1)
+            if(collision is not None):
+                res.append(collision)
     # print("these are first collisions",res)
     return res
 
@@ -59,7 +80,10 @@ def standard_splitting(collision):
     #                          specified timestep, and the second constraint prevents the second agent to traverse the
     #                          specified edge at the specified timestep
     res = []
-    # print(collision)
+    print(collision)
+    if(collision is None):
+        return None
+
     if(collision['vertex']):
         cons1 = {"agent": collision['a1'], 'loc': collision['loc'], 'timestep': collision['timestep'],"vertex":True,"end":False}
         cons2 = {"agent": collision['a2'], 'loc': collision['loc'], 'timestep': collision['timestep'],"vertex":True,"end":False}
@@ -114,6 +138,7 @@ class CBSSolver(object):
         self.heuristics = []
         for goal in self.goals:
             self.heuristics.append(compute_heuristics(my_map, goal))
+        print("these are heuristics", self.heuristics)
 
     def push_node(self, node):
         heapq.heappush(self.open_list, (node['cost'], len(node['collisions']), self.num_of_generated, node))
@@ -146,6 +171,7 @@ class CBSSolver(object):
                 'collisions': []}
         max_path_length = 0
         for i in range(self.num_of_agents):  # Find initial path for each agent
+            print("i am calling a_star", i)
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
                           i, root['constraints'],upperbound)
             if path is None:
@@ -157,10 +183,13 @@ class CBSSolver(object):
 
         root['cost'] = get_sum_of_cost(root['paths'])
         # make all paths length equal to the longest path
-        equalize_path_lengths(root["paths"], max_path_length)
+        # equalize_path_lengths(root["paths"], max_path_length)
         root['collisions'] = detect_collisions(root['paths'])
         # return
         self.push_node(root)
+        print("these are the collisions ", root["collisions"])
+        print("these are the paths ", root["paths"])
+
 
         # # Task 3.1: Testing
         # print(root['collisions'])
@@ -180,13 +209,15 @@ class CBSSolver(object):
         # while(len(self.open_list) >0 and self.num_of_expanded <=6):
         while(len(self.open_list) >0):
             node = self.pop_node()
-            if(node["collisions"] == [None]):
+            if(node["collisions"] == []):
+                print(node["paths"])
                 return node["paths"]
             collision = node["collisions"][0]
             # print(collision)
             # break
             constraints = standard_splitting(collision)
             # print("these are the constraints", constraints)
+
             for constraint in constraints:
                 print("Solving this cons", constraint)
                 # print("before",node["constraints"])
@@ -206,6 +237,8 @@ class CBSSolver(object):
                 upperbound = ( len(self.my_map) * len(self.my_map[0])) + node["cost"]
                 path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], 
                 agent, newNode["constraints"], upperbound)
+                max_path_length = max(max_path_length, len(path))
+                # equalize_path_lengths([path], max_path_length)
                 # print("old path", newNode["paths"])
                 # print("new path found for agent",agent,path, len(path), upperbound)
                 # break
@@ -214,6 +247,7 @@ class CBSSolver(object):
                     newNode["collisions"] = detect_collisions(newNode["paths"])
                     newNode["cost"] = get_sum_of_cost(newNode["paths"])
                     self.push_node(newNode)
+                    # print("these are the collisions", newNode["coll"])
                 # break
 
 

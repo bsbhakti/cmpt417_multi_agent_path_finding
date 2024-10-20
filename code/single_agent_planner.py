@@ -146,8 +146,16 @@ def compare_nodes(n1, n2):
     """Return true is n1 is better than n2."""
     return n1['g_val'] + n1['h_val'] < n2['g_val'] + n2['h_val']
 
-def valid_state(x, y, map):
-    return ((0 <= x <= len(map)) and (0 <= y <= len(map[0])))
+def valid_state(map, child_loc):
+    # return ((1 <= x <= len(map)) and (1 <= y <= len(map[0])))
+    if child_loc[0] < 0 or child_loc[0] >= len(map) \
+               or child_loc[1] < 0 or child_loc[1] >= len(map[0]):
+               print("returning false ", child_loc[0],child_loc[1])
+               return False
+    if map[child_loc[0]][child_loc[1]]:
+                print("returning false ", child_loc[0],child_loc[1])
+                return False
+    return True
 
 
 def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound):
@@ -196,10 +204,11 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound
                 child_loc = move(curr['loc'], dir)
                 # if my_map[child_loc[0]][child_loc[1]]:
                 #     continue
-                if not valid_state(child_loc[0],child_loc[1],my_map):
+                if child_loc not in h_values:
+                # not valid_state(my_map,child_loc):
                     continue
 
-                print(curr)
+                # print(curr)
                 child = {'loc': child_loc,
                         'g_val': curr['g_val'] + 1,
                         'h_val': h_values[child_loc],
