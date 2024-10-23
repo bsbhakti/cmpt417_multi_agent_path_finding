@@ -33,14 +33,7 @@ def detect_collision(path1, path2, i,j):
         if(get_location(shorter_list,time+1) == pos and get_location(shorter_list,time) == get_location(longer_list,time+1)):
             # print("found edge collision", pos,get_location(path2,time+1), get_location(path1,time-1), time, i )
             return {'a1': agent1, 'a2': agent2, 'loc': [pos,get_location(longer_list,time+1)], 'timestep':time+1, 'vertex': False}
-        # #goal collison - one vertex is at the goal and other tries to pass it over
-        # if(time == (len(path1)-1)): #last one
-        #     if(len(path2) > len(path1)):
-        #         for extra_time in range(time+1, len(path2)):
-        #             if(get_location(path2,extra_time) == pos):
-        #                 return {'a1': i, 'a2': j, 'loc': [pos], 'timestep':time, 'vertex': True, 'end': True}
-
-
+      
 
 def detect_collisions(paths):
     ##############################
@@ -138,7 +131,7 @@ class CBSSolver(object):
         self.heuristics = []
         for goal in self.goals:
             self.heuristics.append(compute_heuristics(my_map, goal))
-        print("these are heuristics", self.heuristics)
+        # print("these are heuristics", self.heuristics)
 
     def push_node(self, node):
         heapq.heappush(self.open_list, (node['cost'], len(node['collisions']), self.num_of_generated, node))
@@ -164,7 +157,9 @@ class CBSSolver(object):
         # paths         - list of paths, one for each agent
         #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
         # collisions     - list of collisions in paths
-        upperbound = len(self.my_map) * len(self.my_map[0])
+        # upperbound = len(self.my_map) * len(self.my_map[0])
+        upperbound = float('inf')
+
         root = {'cost': 0,
                 'constraints': [],
                 'paths': [],
@@ -209,8 +204,8 @@ class CBSSolver(object):
         # while(len(self.open_list) >0 and self.num_of_expanded <=6):
         while(len(self.open_list) >0):
             node = self.pop_node()
+            # print(f"Popped node has {len(node['collisions'])} collisions and length {node['cost']}")
             if(node["collisions"] == []):
-                print(node["paths"])
                 return node["paths"]
             collision = node["collisions"][0]
             # print(collision)
@@ -234,7 +229,9 @@ class CBSSolver(object):
                 agent = constraint["agent"]
                 # print("agent", agent)
                 # break
-                upperbound = ( len(self.my_map) * len(self.my_map[0])) + node["cost"]
+                # upperbound = ( len(self.my_map) * len(self.my_map[0])) + node["cost"]
+                upperbound = float('inf')
+                
                 path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], 
                 agent, newNode["constraints"], upperbound)
                 max_path_length = max(max_path_length, len(path))

@@ -30,6 +30,11 @@ class Animation:
         self.fig.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=None, hspace=None)
         # self.ax.set_frame_on(False)
 
+          # Add grid lines
+        self.ax.set_xticks(np.arange(-0.5, len(self.my_map), 1))
+        self.ax.set_yticks(np.arange(-0.5, len(self.my_map[0]), 1))
+        self.ax.grid(True, which='both')
+
         self.patches = []
         self.artists = []
         self.agents = dict()

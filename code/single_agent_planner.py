@@ -48,11 +48,11 @@ def compute_heuristics(my_map, goal):
         h_values[loc] = node['cost']
     return h_values
 
-def put_in_table(constraint_table, timestep, loc,type):
-    if(timestep in constraint_table[type]):
-        constraint_table[type][timestep].append(loc)
+def put_in_table(constraint_table, timestep, loc,type,mainType):
+    if(timestep in constraint_table[mainType][type]):
+        constraint_table[mainType][type][timestep].append(loc)
     else:
-        constraint_table[type][timestep] = [loc]
+        constraint_table[mainType][type][timestep] = [loc]
     return constraint_table
 
 
@@ -64,19 +64,30 @@ def build_constraint_table(constraints, agent):
     #               is_constrained function.
    
     # dict indexed by timestep. each index has an array of locations the agent cannt be at at that timestep
-    constraint_table = {'edge': {}, 'vertex': {}, 'end': {}}
+    # {'a1': 2, 'a2': 1, 'loc': [(1, 5)], 'timestep': 2, 'vertex': True, 'positive':True} //const looks like this
+    constraint_table = {"negative": {'edge': {}, 'vertex': {}, 'end': {}}, "positive": {'edge': {}, 'vertex': {} } }
+    main_type = "negative"
+
     for constraint in constraints:
         # print("this is constraint",constraint)
+        if constraint['agent'] != agent:
+            continue
+
+        if(constraint["positive"] == False):
+            main_type = "negative"
+        else:
+            main_type = "positive"
+
         if(constraint['end'] == True):
-            constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'][0],'end')
+            constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'][0],'end', main_type)
 
             # constraint_table['end'][constraint['timestep'] ]
         else:
             if(len(constraint['loc']) == 1):
-                constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'][0],'vertex')
+                constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'][0],'vertex',main_type)
             
             else:
-                constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'],'edge')
+                constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'],'edge',main_type)
 
 
     # d = {}
@@ -113,18 +124,18 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     #               by time step, see build_constraint_table.
 
     #check vertex constraint
-    if(next_time in constraint_table['vertex']):
+    if(next_time in constraint_table["negative"]['vertex']):
         if (next_loc in constraint_table['vertex'][next_time]):
             return True
 
     #check edge constraint
-    if(next_time in constraint_table['edge']):
+    if(next_time in constraint_table["negative"]['edge']):
         # print("checki÷ng edge", (curr_loc, next_loc),next_time )
         if ( [curr_loc, next_loc] in constraint_table['edge'][next_time] ):
             # print("returning True", (curr_loc, next_loc),next_time )
             return True
 
-    for time in constraint_table['end'].keys():
+    for time in constraint_table["negative"]['end'].keys():
         if(time <= next_time and constraint_table['end'][time] == [next_loc]):
             return True
 
@@ -145,18 +156,6 @@ def pop_node(open_list):
 def compare_nodes(n1, n2):
     """Return true is n1 is better than n2."""
     return n1['g_val'] + n1['h_val'] < n2['g_val'] + n2['h_val']
-
-def valid_state(map, child_loc):
-    # return ((1 <= x <= len(map)) and (1 <= y <= len(map[0])))
-    if child_loc[0] < 0 or child_loc[0] >= len(map) \
-               or child_loc[1] < 0 or child_loc[1] >= len(map[0]):
-               print("returning false ", child_loc[0],child_loc[1])
-               return False
-    if map[child_loc[0]][child_loc[1]]:
-                print("returning false ", child_loc[0],child_loc[1])
-                return False
-    return True
-
 
 def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound):
     """ my_map      - binary obstacle map
@@ -192,11 +191,14 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound
         ## maybe change this
             if curr['loc'] == goal_loc:
                 goal_found = True
-                for i in constraint_table['vertex'].keys():
+                for i in constraint_table["negative"]['vertex'].keys():
                     if i > curr['time']:
                         if curr['loc'] in constraint_table['vertex'][i]:
                             goal_found = False
-                            continue
+                            p = get_path(curr)
+                            if(get_sum_of_cost(p) == 26):
+                                print("making goal False",p )
+                            break
                 if(goal_found):
                     return get_path(curr)
         
@@ -215,6 +217,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound
                         'parent': curr,
                         'time': curr['time'] + 1 }
                 # mayve we can prune when we pop it, rn pruning is done at node generation? 
+                
                 if(is_constrained(curr['loc'], child['loc'], child['time'],constraint_table )):
                     # print("It is constrained for loc", child['loc'], "at time", child['time'])
                     continue
