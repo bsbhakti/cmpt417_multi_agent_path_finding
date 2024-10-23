@@ -206,6 +206,7 @@ class CBSSolver(object):
             node = self.pop_node()
             # print(f"Popped node has {len(node['collisions'])} collisions and length {node['cost']}")
             if(node["collisions"] == []):
+                print(f"Popped node has {len(node['collisions'])} collisions and length {node['cost']}")
                 return node["paths"]
             collision = node["collisions"][0]
             # print(collision)

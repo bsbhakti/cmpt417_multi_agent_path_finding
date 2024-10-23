@@ -49,10 +49,10 @@ def compute_heuristics(my_map, goal):
     return h_values
 
 def put_in_table(constraint_table, timestep, loc,type,mainType):
-    if(timestep in constraint_table[mainType][type]):
-        constraint_table[mainType][type][timestep].append(loc)
+    if(timestep in constraint_table[type]):
+        constraint_table[type][timestep].append(loc)
     else:
-        constraint_table[mainType][type][timestep] = [loc]
+        constraint_table[type][timestep] = [loc]
     return constraint_table
 
 
@@ -65,18 +65,18 @@ def build_constraint_table(constraints, agent):
    
     # dict indexed by timestep. each index has an array of locations the agent cannt be at at that timestep
     # {'a1': 2, 'a2': 1, 'loc': [(1, 5)], 'timestep': 2, 'vertex': True, 'positive':True} //const looks like this
-    constraint_table = {"negative": {'edge': {}, 'vertex': {}, 'end': {}}, "positive": {'edge': {}, 'vertex': {} } }
+    constraint_table = {'edge': {}, 'vertex': {}, 'end': {}}
     main_type = "negative"
 
     for constraint in constraints:
-        # print("this is constraint",constraint)
+        print("this is constraint",constraint)
         if constraint['agent'] != agent:
             continue
 
-        if(constraint["positive"] == False):
-            main_type = "negative"
-        else:
-            main_type = "positive"
+        # if(constraint["positive"] == False):
+            # main_type = "negative"
+        # else:
+        #     main_type = "positive"
 
         if(constraint['end'] == True):
             constraint_table = put_in_table(constraint_table, constraint['timestep'], constraint['loc'][0],'end', main_type)
@@ -124,18 +124,18 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     #               by time step, see build_constraint_table.
 
     #check vertex constraint
-    if(next_time in constraint_table["negative"]['vertex']):
+    if(next_time in constraint_table['vertex']):
         if (next_loc in constraint_table['vertex'][next_time]):
             return True
 
     #check edge constraint
-    if(next_time in constraint_table["negative"]['edge']):
+    if(next_time in constraint_table['edge']):
         # print("checki÷ng edge", (curr_loc, next_loc),next_time )
         if ( [curr_loc, next_loc] in constraint_table['edge'][next_time] ):
             # print("returning True", (curr_loc, next_loc),next_time )
             return True
 
-    for time in constraint_table["negative"]['end'].keys():
+    for time in constraint_table['end'].keys():
         if(time <= next_time and constraint_table['end'][time] == [next_loc]):
             return True
 
@@ -171,13 +171,12 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound
 
     open_list = []
     closed_list = dict()
-    earliest_goal_timestep = 0
     h_value = h_values[start_loc]
-    # print("a star is getting this ", constraints)
+    print("a star is getting this ", constraints)
     # return
 
     constraint_table = build_constraint_table(constraints, agent)
-    # print("this is constraint table", constraint_table) 
+    print("this is constraint table", constraint_table) 
 
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'time': 0}
     push_node(open_list, root)
@@ -191,7 +190,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound
         ## maybe change this
             if curr['loc'] == goal_loc:
                 goal_found = True
-                for i in constraint_table["negative"]['vertex'].keys():
+                for i in constraint_table['vertex'].keys():
                     if i > curr['time']:
                         if curr['loc'] in constraint_table['vertex'][i]:
                             goal_found = False

@@ -37,17 +37,18 @@ class PrioritizedPlanningSolver(object):
         upperbound = len(self.my_map) * len(self.my_map[0])
 
         for i in range(self.num_of_agents):  # Find path for each agent
-            # if(i == 0):
-            #     path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-            #               i, all_constraints, upperbound)
-            # else: 
-            #     path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-            #               i, all_constraints, upperbound)
-            path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                        i, all_constraints, upperbound)
+            if(i == 0):
+                path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+                          i, all_constraints, upperbound)
+            else: 
+                path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+                          i, all_constraints, upperbound)
+            # path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+            #             i, all_constraints, upperbound)
             if path is None:
                 raise BaseException('No solutions')
             result.append(path)
+            print("path ",result)
 
             ##############################
             # Task 2: Add constraints here
@@ -61,10 +62,10 @@ class PrioritizedPlanningSolver(object):
             # at the end of the path, the agent is permanently at the goal so for all time stamps >= len(path)
             # the goal is occupied
             for index,position in enumerate(path[1:]):
-                all_constraints.append({'loc':[position], 'timestep': index+1, 'end':False })
-                # print("adding cons ",[position, path[index]], index+1)
-                all_constraints.append({'loc':[position, path[index]], 'timestep': index+1, 'end':False })
-            all_constraints.append({'loc':[path[-1]], 'timestep': len(path), 'end':True })
+                all_constraints.append({'loc':[position], 'timestep': index+1, 'end':False, })
+                print("adding cons ",[position, path[index]], index+1)
+                all_constraints.append({'loc':[position, path[index]], 'timestep': index+1, 'end':False ,'positive': False})
+            all_constraints.append({'loc':[path[-1]], 'timestep': len(path), 'end':True, })
             upperbound += len(path)
 
             # print("th is is all", all_constraints)
