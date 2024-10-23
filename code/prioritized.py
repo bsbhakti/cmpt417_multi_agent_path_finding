@@ -38,6 +38,7 @@ class PrioritizedPlanningSolver(object):
 
         for i in range(self.num_of_agents):  # Find path for each agent
             if(i == 0):
+                print(i)
                 path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
                           i, all_constraints, upperbound, False)
             else: 
@@ -62,10 +63,10 @@ class PrioritizedPlanningSolver(object):
             # at the end of the path, the agent is permanently at the goal so for all time stamps >= len(path)
             # the goal is occupied
             for index,position in enumerate(path[1:]):
-                all_constraints.append({'loc':[position], 'timestep': index+1, 'end':False, })
+                all_constraints.append({'loc':[position], 'timestep': index+1, 'end':False, "positive": False})
                 print("adding cons ",[position, path[index]], index+1)
                 all_constraints.append({'loc':[position, path[index]], 'timestep': index+1, 'end':False ,'positive': False})
-            all_constraints.append({'loc':[path[-1]], 'timestep': len(path), 'end':True, })
+            all_constraints.append({'loc':[path[-1]], 'timestep': len(path), 'end':True,"positive": False })
             upperbound += len(path)
 
             # print("th is is all", all_constraints)
