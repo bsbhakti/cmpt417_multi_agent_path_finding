@@ -39,10 +39,10 @@ class PrioritizedPlanningSolver(object):
         for i in range(self.num_of_agents):  # Find path for each agent
             if(i == 0):
                 path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                          i, all_constraints, upperbound)
+                          i, all_constraints, upperbound, False)
             else: 
                 path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                          i, all_constraints, upperbound)
+                          i, all_constraints, upperbound, False)
             # path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
             #             i, all_constraints, upperbound)
             if path is None:

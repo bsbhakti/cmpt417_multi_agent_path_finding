@@ -168,7 +168,7 @@ class CBSSolver(object):
         for i in range(self.num_of_agents):  # Find initial path for each agent
             print("i am calling a_star", i)
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                          i, root['constraints'],upperbound)
+                          i, root['constraints'],upperbound, True)
             if path is None:
                 raise BaseException('No solutions')
             root['paths'].append(path)
@@ -234,7 +234,7 @@ class CBSSolver(object):
                 upperbound = float('inf')
                 
                 path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], 
-                agent, newNode["constraints"], upperbound)
+                agent, newNode["constraints"], upperbound, True)
                 max_path_length = max(max_path_length, len(path))
                 # equalize_path_lengths([path], max_path_length)
                 # print("old path", newNode["paths"])

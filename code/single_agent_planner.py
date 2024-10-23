@@ -56,7 +56,7 @@ def put_in_table(constraint_table, timestep, loc,type,mainType):
     return constraint_table
 
 
-def build_constraint_table(constraints, agent):
+def build_constraint_table(constraints, agent, isCbs):
     ##############################
     # Task 1.2/1.3: Return a table that contains the list of constraints of
     #               the given agent for each time step. The table can be used
@@ -70,8 +70,9 @@ def build_constraint_table(constraints, agent):
 
     for constraint in constraints:
         print("this is constraint",constraint)
-        if constraint['agent'] != agent:
-            continue
+        if(isCbs):
+            if constraint['agent'] != agent:
+                continue
 
         # if(constraint["positive"] == False):
             # main_type = "negative"
@@ -157,7 +158,7 @@ def compare_nodes(n1, n2):
     """Return true is n1 is better than n2."""
     return n1['g_val'] + n1['h_val'] < n2['g_val'] + n2['h_val']
 
-def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound):
+def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound, isCbs):
     """ my_map      - binary obstacle map
         start_loc   - start position
         goal_loc    - goal position
@@ -175,7 +176,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound
     print("a star is getting this ", constraints)
     # return
 
-    constraint_table = build_constraint_table(constraints, agent)
+    constraint_table = build_constraint_table(constraints, agent, isCbs)
     print("this is constraint table", constraint_table) 
 
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'time': 0}
