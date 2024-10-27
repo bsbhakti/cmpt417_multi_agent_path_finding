@@ -136,13 +136,11 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
         # print("checking edge", (curr_loc, next_loc),next_time )
         if ( [curr_loc, next_loc] not in constraint_table["positive"]['edge'][next_time] ):
             # print("returning True", (curr_loc, next_loc),next_time )
-            # print("hew1")
             return True
 
     #check vertex constraint
     if(next_time in constraint_table["negative"]['vertex']):
         if (next_loc in constraint_table["negative"]['vertex'][next_time]):
-            # print("hew")
             return True
 
     #check edge constraint
@@ -150,13 +148,10 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
         # print("checki÷ng edge", (curr_loc, next_loc),next_time )
         if ( [curr_loc, next_loc] in constraint_table["negative"]['edge'][next_time] ):
             # print("returning True", (curr_loc, next_loc),next_time )
-            print("hew1")
             return True
 
     for time in constraint_table["negative"]['end'].keys():
         if(time <= next_time and constraint_table["negative"]['end'][time] == [next_loc]):
-            print("he2")
-
             return True
 
     # print("fa")
@@ -191,12 +186,16 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound
 
     open_list = []
     closed_list = dict()
+    print("a star is getting thies ", constraints)
+
+    print(h_values)
+
     h_value = h_values[start_loc]
-    # print("a star is getting this ", constraints)
+    print("a star is getting this ", constraints)
     # return
 
     constraint_table = build_constraint_table(constraints, agent, isCbs)
-    print("this is constraint table", constraint_table) 
+    # print("this is constraint table", constraint_table) 
 
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'time': 0}
     push_node(open_list, root)
@@ -219,7 +218,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound
                             #     print("making goal False",p )
                             # break
                 if(goal_found):
-                    print("found")
+                    # print("found")
                     return get_path(curr)
         
             for dir in range(5):
@@ -239,7 +238,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound
                 # mayve we can prune when we pop it, rn pruning is done at node generation? 
                 # print("sa")
                 if(is_constrained(curr['loc'], child['loc'], child['time'],constraint_table )):
-                    print("It is constrained for loc", child['loc'], "at time", child['time'])
+                    # print("It is constrained for loc", child['loc'], "at time", child['time'])
                     continue
                 if ((child['loc'], child['time'])) in closed_list:
                     existing_node = closed_list[(child['loc'], child['time'])]

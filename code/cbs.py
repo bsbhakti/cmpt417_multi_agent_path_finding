@@ -211,7 +211,7 @@ class CBSSolver(object):
                 'collisions': []}
         max_path_length = 0
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            print("i am calling a_star", i)
+            # print("i am calling a_star", i)
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
                           i, root['constraints'],upperbound, True)
             if path is None:
@@ -225,7 +225,7 @@ class CBSSolver(object):
         root['collisions'] = detect_collisions(root['paths'])
         # return
         self.push_node(root)
-        print("these are the collisions ", root["collisions"])
+        # print("these are the collisions ", root["collisions"])
         # print("these are the paths ", root["paths"])
 
 
@@ -259,7 +259,7 @@ class CBSSolver(object):
                 constraints = disjoint_splitting(collision)
             else:
                 constraints = standard_splitting(collision)
-            print("these are the constraints", constraints)
+            # print("these are the constraints", constraints)
 
             for constraint in constraints:
                 print("Solving this cons", constraint)
@@ -291,9 +291,9 @@ class CBSSolver(object):
                     newNode["cost"] = get_sum_of_cost(newNode["paths"])
 
                     if disjoint and constraint["positive"]:
-                        print("Going in pos constraint loop, doing a star again")
+                        # print("Going in pos constraint loop, doing a star again")
                         recompute_agents = paths_violate_constraint(constraint,newNode["paths"])
-                        print("Recomputing:", len(recompute_agents))
+                        # print("Recomputing:", len(recompute_agents))
                         newPathFound = 0
 
                         for i in recompute_agents:
@@ -306,18 +306,18 @@ class CBSSolver(object):
                                 print("Path not found")
                                 continue 
                             newPathFound+=1
-                            print("this is the new path found for agent ", i, newPath) 
-                            print("oldPath:",  newNode['paths'][i]) 
+                            # print("this is the new path found for agent ", i, newPath) 
+                            # print("oldPath:",  newNode['paths'][i]) 
 
                             newNode['paths'][i] = newPath
                             newNode['collisions'] = detect_collisions(newNode['paths'])
                             newNode['cost'] = get_sum_of_cost(newNode['paths'])
 
                         if newPathFound == recompute_agents:
-                            print("pushing node disjoint")
+                            # print("pushing node disjoint")
                             self.push_node(newNode)
                     else:
-                        print("pushing node")
+                        # print("pushing node")
                         self.push_node(newNode)
 
                     # print("these are the collisions", newNode["coll"])

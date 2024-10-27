@@ -62,6 +62,7 @@ def import_mapf_instance(filename):
     goals = []
     for a in range(num_agents):
         line = f.readline()
+        print(line)
         sx, sy, gx, gy = [int(x) for x in line.split(' ')]
         starts.append((sx, sy))
         goals.append((gx, gy))

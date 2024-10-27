@@ -33,7 +33,9 @@ class PrioritizedPlanningSolver(object):
         # constraints_1 = [{'agent': 1, 'loc': [(1,4)], 'timestep': 2},{'agent': 1, 'loc': [(1,3)], 'timestep': 2},
         # {'agent': 1, 'loc': [(1,2)], 'timestep': 2}] # for Task 1.5
 
-        all_constraints = []
+        # all_constraints = []
+        all_constraints = [{'loc':[(1,5)], 'timestep': 10, 'end':False,"positive": False }]
+
         upperbound = len(self.my_map) * len(self.my_map[0])
 
         for i in range(self.num_of_agents):  # Find path for each agent
