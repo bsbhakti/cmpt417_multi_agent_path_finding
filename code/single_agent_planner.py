@@ -186,13 +186,11 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, upperbound
 
     open_list = []
     closed_list = dict()
-    print("a star is getting thies ", constraints)
+    # print("a star is getting thies ", constraints)
 
-    print(h_values)
 
     h_value = h_values[start_loc]
-    print("a star is getting this ", constraints)
-    # return
+    # print("a star is getting this ", constraints)
 
     constraint_table = build_constraint_table(constraints, agent, isCbs)
     # print("this is constraint table", constraint_table) 

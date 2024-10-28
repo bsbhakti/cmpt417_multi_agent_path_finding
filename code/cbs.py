@@ -180,12 +180,12 @@ class CBSSolver(object):
 
     def push_node(self, node):
         heapq.heappush(self.open_list, (node['cost'], len(node['collisions']), self.num_of_generated, node))
-        print("Generate node {}".format(self.num_of_generated))
+        # print("Generate node {}".format(self.num_of_generated))
         self.num_of_generated += 1
 
     def pop_node(self):
         _, _, id, node = heapq.heappop(self.open_list)
-        print("Expand node {}".format(id))
+        # print("Expand node {}".format(id))
         self.num_of_expanded += 1
         return node
 
@@ -249,9 +249,9 @@ class CBSSolver(object):
             node = self.pop_node()
             # print(f"Popped node has {len(node['collisions'])} collisions and length {node['cost']}")
             if(node["collisions"] == []):
-                print(f"Popped node has length {node['cost']}")
-                print("Total expanded ",self.num_of_expanded)
+                self.print_results(node)
                 return node["paths"]
+            # print(get_sum_of_cost(node["paths"]))
             collision = node["collisions"][0]
             # print(collision)
             # break
@@ -262,7 +262,7 @@ class CBSSolver(object):
             # print("these are the constraints", constraints)
 
             for constraint in constraints:
-                print("Solving this cons", constraint)
+                # print("Solving this cons", constraint)
                 # print("before",node["constraints"])
                 newNode = {'cost': 0,
                 'constraints': deepcopy(node["constraints"]), 

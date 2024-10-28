@@ -3,81 +3,93 @@ import subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Folder containing map instances
 output_maps_folder = "/Users/bhakti/Desktop/bhakti/year_4_sem_1/cmpt_417/cmpt417_multi_agent_path_finding/code/output_maps"
-# List of algorithms to benchmark
-algorithms = ["Prioritized", "CBS", "CBS --disjoint"]
-# Store results in a list
+algorithms = ["Prioritized", "CBS", "CBS_DISJOINT"]
 results = []
 
-# Iterate over all map files in the output_maps folder
+timeout_duration = 1200
+
 for map_file in os.listdir(output_maps_folder):
     map_path = os.path.join(output_maps_folder, map_file)
     if map_file.endswith(".map"):
+        print("Running ", map_file)
         for algo in algorithms:
-            # Run the experiment for each algorithm
-            cmd = [
+            if(algo == "CBS_DISJOINT"):
+                algo = "CBS"
+                cmd = [
                 "python", "run_experiments.py", 
                 "--instance", map_path, 
-                "--solver", algo
-            ]
+                "--solver", algo,
+                "--batch", "--disjoint"]
+                algo = "CBS_Disjoint"
+            else:
+                cmd = [
+                "python", "run_experiments.py", 
+                "--instance", map_path, 
+                "--solver", algo,
+                "--batch"]
             try:
-                # Capture the output
-                output = subprocess.check_output(cmd, universal_newlines=True)
+                output = subprocess.check_output(cmd, universal_newlines=True, timeout=timeout_duration)
                 if "no solution" in output:
-                    nodes_expanded = "N/A"
-                    path_cost = "N/A"
+                    path_cost = -1
+                    cpu_time = -1
                 else:
-                    # Parse nodes expanded and path cost from output
-                    nodes_expanded = int(output.split("Nodes expanded:")[1].split()[0])
-                    path_cost = float(output.split("Path cost:")[1].split()[0])
-            except Exception as e:
-                nodes_expanded = "Error"
-                path_cost = "Error"
+                    sum_cost_line = next((line for line in output.splitlines() if "Sum of costs:" in line), None)
+                    if sum_cost_line:
+                        path_cost = float(sum_cost_line.split("Sum of costs:")[1].strip())
+                    else:
+                        path_cost = -1
+                    
+                    cpu_time_line = next((line for line in output.splitlines() if "CPU time (s):" in line), None)
+                    if cpu_time_line:
+                        cpu_time = float(cpu_time_line.split("CPU time (s):")[1].strip())
+                    else:
+                        cpu_time = -1  
 
-            # Append results
+            except subprocess.TimeoutExpired:
+                print(f"Abandoned {map_file} for algorithm {algo} due to timeout.")
+                path_cost = "Abandoned"
+                cpu_time = "Abandoned"
+            except Exception as e:
+                path_cost = "Error"
+                cpu_time = "Error"
+
             results.append({
                 "Map": map_file,
                 "Algorithm": algo,
-                "Nodes Expanded": nodes_expanded,
-                "Path Cost": path_cost
+                "Path Cost": path_cost,
+                "CPU Time": cpu_time
             })
 
-# Convert results to a DataFrame for easier analysis
 df = pd.DataFrame(results)
 
-# Display the table to the user
-import ace_tools as tools; tools.display_dataframe_to_user(name="MAPF Benchmark Results", dataframe=df)
+df.to_csv("MAPF_Benchmark_Results.csv", index=False)
+print("Results saved to MAPF_Benchmark_Results.csv")
 
-# Plotting
-plt.figure(figsize=(10, 6))
-for algo in algorithms:
-    # Filter results for each algorithm
-    algo_df = df[(df["Algorithm"] == algo) & (df["Nodes Expanded"] != "N/A")]
-    
-    # Plot nodes expanded
-    plt.plot(algo_df["Map"], algo_df["Nodes Expanded"], marker="o", label=f"{algo} - Nodes Expanded")
-    
-plt.xlabel("Map Instances")
-plt.ylabel("Nodes Expanded")
-plt.title("MAPF Benchmark: Nodes Expanded Comparison")
-plt.xticks(rotation=90)
-plt.legend()
-plt.tight_layout()
-plt.show()
+df["Path Cost"] = pd.to_numeric(df["Path Cost"], errors="coerce")
+df["CPU Time"] = pd.to_numeric(df["CPU Time"], errors="coerce")
 
-# Plotting path cost for each algorithm
-plt.figure(figsize=(10, 6))
-for algo in algorithms:
-    algo_df = df[(df["Algorithm"] == algo) & (df["Path Cost"] != "N/A")]
-    
-    # Plot path cost
-    plt.plot(algo_df["Map"], algo_df["Path Cost"], marker="x", label=f"{algo} - Path Cost")
-
-plt.xlabel("Map Instances")
+plt.figure(figsize=(12, 6))
+df_bar = df.dropna(subset=["Path Cost"])
+df_bar = df_bar.pivot(index="Map", columns="Algorithm", values="Path Cost")
+df_bar.plot(kind="bar", width=0.8)
+plt.title("Path Cost Comparison for Each Algorithm Across Maps")
 plt.ylabel("Path Cost")
-plt.title("MAPF Benchmark: Path Cost Comparison")
+plt.xlabel("Map Instances")
+plt.xticks(rotation=90)
+plt.legend(title="Algorithm")
+plt.tight_layout()
+plt.savefig("Bar.png")
+
+plt.figure(figsize=(12, 6))
+for algo in algorithms:
+    algo_df = df[(df["Algorithm"] == algo) & (df["CPU Time"] > 0)]  # Filter out invalid CPU times
+    plt.scatter(algo_df["Map"], algo_df["CPU Time"], label=f"{algo} - CPU Time", alpha=0.7)
+
+plt.xlabel("Map Instances")
+plt.ylabel("CPU Time (s)")
+plt.title("CPU Time Comparison for Each Algorithm Across Maps")
 plt.xticks(rotation=90)
 plt.legend()
 plt.tight_layout()
-plt.show()
+plt.savefig("CPU_Time_Scatter.png")
